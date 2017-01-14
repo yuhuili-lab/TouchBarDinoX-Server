@@ -5,6 +5,7 @@
 //
 
 #include <ctime>
+#include <memory>
 #include <iostream>
 #include <string>
 #include <cstdio>
@@ -23,6 +24,15 @@
 
 using boost::asio::ip::tcp;
 
+template<typename ... Args>
+std::string string_format( const std::string& format, Args ... args )
+{
+    size_t size = snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
+    std::unique_ptr<char[]> buf(new char[size]); 
+    snprintf(buf.get(), size, format.c_str(), args ... );
+    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+}
+
 std::string make_daytime_string() {
   using namespace std; // For time_t, time and ctime;
   time_t now = time(0);
@@ -31,22 +41,33 @@ std::string make_daytime_string() {
 
 class database_manager {
 public:
-  bool start() {
+  bool write(std::string& player_id, std::string& player_name, double player_score, std::string& player_ip, std::string& player_system, std::string& timestamp) {
     rc = sqlite3_open("dino-test.db", &db);
     if (rc) {
       return false;
     }
-    return true;
-  }
-  
-  void stop() {
+    
+    query = "INSERT INTO scoreboard (player_id, player_name, player_score, player_ip, player_system, timestamp) VALUES ('"+player_id+"','"+player_name+"',"+std::to_string(player_score)+",'"+player_ip+"','"+player_system+"','"+timestamp+"');";
+    
+    std::cout << query << std::endl;
+    
+    const char *cquery = query.c_str();
+    
+    rc = sqlite3_exec(db, cquery, 0, 0, &zErrMsg);
+    if (rc!=SQLITE_OK){
+      std::cout << "Database error" << std::endl;
+      sqlite3_free(zErrMsg);
+    }
+    
     sqlite3_close(db);
+    return true;
   }
   
 private:
   sqlite3 *db;
   char *zErrMsg = 0;
   int rc;
+  std::string query;
 };
 
 class tcp_connection
@@ -79,10 +100,11 @@ public:
     
     database_manager *dbm = new database_manager();
     
+    /*
     if (!dbm->start()) {
       std::cout << timestamp_.substr(0, timestamp_.size()-1) << " " << "Database error, please try again later" << std::endl;
       return;
-    }
+    }*/
 
     boost::asio::async_write(socket_, boost::asio::buffer(message_),
         boost::bind(&tcp_connection::handle_write, shared_from_this(),
@@ -106,7 +128,7 @@ public:
       const char *json_string_c = json_string.c_str();
       JSONValue *data = JSON::Parse(json_string_c);
       
-      std::cout << "json_string:" << json_string << std::endl; 
+      //std::cout << "json_string:" << json_string << std::endl; 
       
       if (data == NULL || data->IsObject() == false) {
         print_data_error();
@@ -172,6 +194,7 @@ public:
       ss << seconds;
       timestamp = ss.str();
       
+      dbm->write(player_id, player_name, player_score, player_ip, player_system, timestamp);
       
     }
   }
