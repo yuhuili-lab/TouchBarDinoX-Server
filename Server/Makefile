@@ -10,4 +10,4 @@ FLAGS=-std=c++11 $(LLIBFLAGS) $(LDFLAGS) $(LINKFLAGS)
 
 
 TBDServer: TouchBarDinoXServer.cpp
-	$(CC) $(FLAGS) -o TouchBarDinoXServer.out SimpleJSON/JSONValue.cpp SimpleJSON/JSON.cpp TouchBarDinoXServer.cpp
+	$(CC) $(FLAGS) -o TouchBarDinoXServer.out SimpleJSON/JSONValue.cpp SimpleJSON/JSON.cpp DBManager.cpp TouchBarDinoXServer.cpp
