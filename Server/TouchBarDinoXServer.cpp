@@ -115,13 +115,7 @@ public:
         return;
       }
       
-      if (root.find(L"player_ip")!= root.end() && root[L"player_ip"]->IsString()) {
-        temp = root[L"player_ip"]->AsString();
-        player_ip = std::string(temp.begin(), temp.end());
-      } else {
-        print_data_error();
-        return;
-      }
+      player_ip = socket_.remote_endpoint().address().to_string();
       
       if (root.find(L"player_system")!= root.end() && root[L"player_system"]->IsString()) {
         temp = root[L"player_system"]->AsString();
