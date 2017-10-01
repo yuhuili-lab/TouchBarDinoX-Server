@@ -47,20 +47,10 @@ public:
     std::cout << timestamp_.substr(0, timestamp_.size()-1) << " " << "Data error." << std::endl;
     
     message_ = "Data error.\n";
-    
-    /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
-        boost::bind(&tcp_connection::handle_write, shared_from_this(),
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));*/
   }
 
   void start() {
     message_ = "Welcome to TouchBarDinoXServer\n";
-
-    /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
-        boost::bind(&tcp_connection::handle_write, shared_from_this(),
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));*/
     
     for(;;) {
       boost::array<char, 1024> buf;
